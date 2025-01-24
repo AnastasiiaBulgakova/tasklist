@@ -1,96 +1,102 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './task.css';
 import { formatDistanceToNowStrict } from 'date-fns';
 import PropTypes from 'prop-types';
+import { useCounter, useDateFormat, useNow } from '@shined/react-use'
 
-export default class Task extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      timeAgo: this.calculateTimeAgo(props.createdAt),
-      editingValue: props.label,
-    };
-    this.inputRef = React.createRef();
-  }
+const Task = ({
+  label,
+  onDeleted,
+  onToggleDone,
+  done,
+  editing,
+  onToggleEditing,
+  createdAt,
+}) => {
+  const [timeAgo, setTimeAgo] = useState(() =>
+    formatDistanceToNowStrict(new Date(createdAt), { addSuffix: true })
+  );
+  const [editingValue, setEditingValue] = useState(label);
+  const [startAt, setStartAt] = useState(null); // Начальное значение null
+  const inputRef = useRef(null);
 
-  calculateTimeAgo(createdAt) {
-    return formatDistanceToNowStrict(new Date(createdAt), { addSuffix: true });
-  }
+  const now = useNow(); // Получаем текущее время каждую секунду
+  const dateStr = useDateFormat(now, 'YYYY-MM-DD HH:mm:ss:SSS');
+  const [count, actions] = useCounter(0)
+  const { now: _now, ...controls } = useNow({
+    interval: 1000,
+    controls: true,
+    immediate: false,
+    callback: () => actions.inc(),
+  })
+  const fromStart = startAt ? now - startAt : 0;
 
-  componentDidMount() {
-    this.interval = setInterval(() => {
-      const { createdAt } = this.props;
-      this.setState({
-        timeAgo: this.calculateTimeAgo(createdAt),
-      });
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimeAgo(formatDistanceToNowStrict(new Date(createdAt), { addSuffix: true }));
     }, 60000);
-  }
 
-  componentWillUnmount() {
-    clearInterval(this.interval);
-  }
+    return () => clearInterval(interval);
+  }, [createdAt]);
 
-  handleBlur = () => {
-    const { onToggleEditing } = this.props;
-    const { editingValue } = this.state;
-
-    onToggleEditing(editingValue); // Передаем строку, а не объект
-  };
-
-  handleKeyDown = (e) => {
-    const { onToggleEditing } = this.props;
-    const { editingValue } = this.state;
-
-    if (e.key === 'Enter') {
-      onToggleEditing(editingValue); // Передаем строку, а не объект
+  const toggleTimer = () => {
+    if (startAt) {
+      setStartAt(null); // Сбрасываем таймер в null
+    } else {
+      setStartAt(Date.now()); // Запускаем таймер
     }
   };
 
-  handleChange = (event) => {
-    this.setState({ editingValue: event.target.value }); // Сохраняем строку
+  const handleBlur = () => {
+    onToggleEditing(editingValue);
   };
 
-  render() {
-    const {
-      label, onDeleted, onToggleDone, done, editing, onToggleEditing,
-    } = this.props;
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      onToggleEditing(editingValue);
+    }
+  };
 
-    // Рассчитываем, сколько времени прошло с момента создания
-    const { timeAgo, editingValue } = this.state;
+  const handleChange = (e) => {
+    setEditingValue(e.target.value);
+  };
+  
 
-    let naming = '';
+  let naming = '';
+  if (done) naming = 'completed';
+  if (editing) naming = 'editing';
 
-    if (done) naming = 'completed';
-
-    if (editing) naming = 'editing';
-
-    return (
-      <li className={naming}>
-        <div className="view">
-          <input className="toggle" type="checkbox" onClick={onToggleDone} />
-          <label>
-            <span className="description">{label}</span>
-            <span className="created">{`Created ${timeAgo}`}</span> {/* выводим время */}
-          </label>
-          <button className="icon icon-edit" onClick={onToggleEditing}></button>
-          <button className="icon icon-destroy" onClick={onDeleted}></button>
-        </div>
-        {naming === 'editing' && (
-          <input
-            ref={this.inputRef}
-            className="edit"
-            type="text"
-            value={editingValue}
-            onChange={this.handleChange}
-            onBlur={this.handleBlur}
-            onKeyDown={this.handleKeyDown}
-            autoFocus
-          />
-        )}
-      </li>
-    );
-  }
-}
+  return (
+    <li className={naming}>
+      <div className="view">
+        <input className="toggle" type="checkbox" onClick={onToggleDone} />
+        <label>
+          <span className="title">{label}</span>
+          <span className="description">
+            <button className="icon icon-play" onClick={() => controls.resume(true)}></button>
+            <button className="icon icon-pause" onClick={() => controls.pause(true)}></button>
+            {count > 60 ? `${Math.floor(count / 60)} min` : `${count} sec`} 
+          </span>
+          <span className="description">{`Created ${timeAgo}`}</span>
+        </label>
+        <button className="icon icon-edit" onClick={() => onToggleEditing(editingValue)}></button>
+        <button className="icon icon-destroy" onClick={onDeleted}></button>
+      </div>
+      {naming === 'editing' && (
+        <input
+          ref={inputRef}
+          className="edit"
+          type="text"
+          value={editingValue}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          autoFocus
+        />
+      )}
+    </li>
+  );
+};
 
 Task.propTypes = {
   label: PropTypes.string.isRequired,
@@ -101,6 +107,7 @@ Task.propTypes = {
   onToggleEditing: PropTypes.func.isRequired,
   createdAt: PropTypes.instanceOf(Date).isRequired,
 };
+
 Task.defaultProps = {
   label: '',
   onDeleted: () => {},
@@ -110,3 +117,5 @@ Task.defaultProps = {
   onToggleEditing: () => {},
   createdAt: new Date(),
 };
+
+export default Task;

@@ -4,6 +4,7 @@ import TaskList from './components/taskList/TaskList.jsx';
 import './app.css';
 import NewTaskForm from './components/newTaskForm/NewTaskForm.jsx';
 import Footer from './components/footer/Footer.jsx';
+import Header from './components/header/Header.jsx';
 
 export default class App extends React.Component {
   elemId = 1;
@@ -106,6 +107,7 @@ export default class App extends React.Component {
     const todoCount = todoData.length - doneCount;
     return (
       <section className="todoapp">
+        <Header />
         <NewTaskForm addItem={this.addItem} />
         <section className="main">
           <TaskList

@@ -4,11 +4,12 @@
   "private": false,
   "dependencies": {
     "@babel/core": "^7.26.0",
-    "@babel/preset-env": "^7.26.0",
     "@babel/preset-react": "^7.26.3",
+    "@shined/react-use": "^1.11.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.1.0",
     "@testing-library/user-event": "^14.5.2",
+    "@vueuse/core": "^12.5.0",
     "cra-template": "1.2.0",
     "date-fns": "^4.1.0",
     "prop-types": "^15.8.1",
@@ -54,7 +55,7 @@
   "author": "Bulgakova Anastasiia",
   "license": "ISC",
   "devDependencies": {
-    "eslint": "^8.57.1",
+    "@babel/preset-env": "^7.26.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-html": "^8.1.2",
