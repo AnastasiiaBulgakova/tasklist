@@ -2,9 +2,10 @@
     "env": {
         "browser": true,
         "es6": true,
-        "node": true
+        "node": true,
+        "react": true
     },
-    "extends": ["airbnb/base"],
+    "extends": ["airbnb", "airbnb/hooks"],
     "rules": {
         "semi": "off",
         "max-len": ["error", 160],

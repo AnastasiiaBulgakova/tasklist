@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import './task.css';
+
 import { formatDistanceToNowStrict } from 'date-fns';
 import PropTypes from 'prop-types';
-import { useCounter, useDateFormat, useNow } from '@shined/react-use'
+import { useCounter, useDateFormat, useNow } from '@shined/react-use';
+import './task.scss';
 
 const Task = ({
   label,
